@@ -80,10 +80,11 @@ struct sqlca_t *ECPGget_sqlca(void);
 
 #line 4 "main.pgc"
 
+void opcionMenu();
 
 int main() {
-    { ECPGconnect(__LINE__, 0, "Lab2BD2" , "postgres" , "'tu_contraseña'" , NULL, 0); }
-#line 7 "main.pgc"
+    { ECPGconnect(__LINE__, 0, "Lab2BD2" , "postgres" , "'postgres'" , NULL, 0); }
+#line 8 "main.pgc"
 
 
     if (sqlca.sqlcode != 0) {
@@ -94,7 +95,7 @@ int main() {
     printf("Conexión exitosa a la base de datos.\n");
 
     { ECPGdisconnect(__LINE__, "CURRENT");}
-#line 16 "main.pgc"
+#line 17 "main.pgc"
 
 
     return 0;
