@@ -1,0 +1,3 @@
+ecpg main.pgc
+gcc main.c -o main -lecpg -I/usr/include/postgresql
+./main

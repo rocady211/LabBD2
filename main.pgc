@@ -2,10 +2,10 @@
 #include <stdlib.h>
 
 EXEC SQL INCLUDE sqlca;
-
 void opcionMenu();
+
 int main() {
-    EXEC SQL CONNECT TO Lab2BD2 USER postgres IDENTIFIED BY 'postgres';
+    EXEC SQL CONNECT TO 'lab02@localhost' USER postgres IDENTIFIED BY postgres;
 
     if (sqlca.sqlcode != 0) {
         printf("Error al conectar: %s\n", sqlca.sqlerrm.sqlerrmc);
@@ -18,7 +18,6 @@ int main() {
 
     return 0;
 }
-
 
 
 void opcionMenu() {
