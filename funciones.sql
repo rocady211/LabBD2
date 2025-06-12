@@ -1,6 +1,45 @@
+
+--------------------------REALIZAR VENTA----------------------------
+CREATE OR REPLACE FUNCTION check_venta(id_parque INTEGER, fecha TIMESTAMP, cantEntradas INTEGER, cantiParking INTEGER, nombreCliente TEXT, PARKING INTEGER) 
+RETURNS BOOLEAN
+AS $$
+DECLARE
+    existe_parque BOOLEAN;
+    capacidadParque INTEGER;
+    capacidadOcupada INTEGER;
+BEGIN
+    existe_parque := false;
+    capacidadParque := 0;
+    capacidadOcupada := 0;
+    --Chequeo parque
+    SELECT INTO existe_parque
+    EXISTS(SELECT 1 FROM parque p WHERE id_parque = p.id_parque);
+
+    IF NOT existe_parque THEN
+        RAISE EXCEPTION 'No existe el parque';
+    END IF;
+    --Capacidad parque
+    SELECT capacidad INTO capacidadParque 
+    FROM parque p 
+    WHERE p.id_parque = id_parque;
+
+    --Capacidad ocupada del parque
+    SELECT COUNT(*) INTO capacidadOcupada
+    FROM pase p 
+    WHERE p.id_parque = id_parque AND p.fecha = fecha; 
+
+    if(capacidadOcupada + cantEntradas <= capacidadParque) THEN 
+        RETURN TRUE;
+    END IF;
+    
+    RAISE EXCEPTION "No hay espacio disponible";
+
+END;
+$$ LANGUAGE plpgsql;
+
 --------------------------VALIDAR ENTRADA----------------------------
 
-CREATE OR REPLACE FUNCTION validar_entrada(fecha_input DATE, ci_input INTEGER) 
+CREATE OR REPLACE FUNCTION validar(fecha_input DATE, ci_input INTEGER) 
 RETURNS TEXT
 AS $$
 DECLARE
@@ -38,7 +77,7 @@ $$ LANGUAGE plpgsql;
 
 -------------------------TOTAL RECAUDADO-------------------------------
 
-CREATE OR REPLACE FUNCTION total_recaudado(mes_input INTEGER, anio_input INTEGER) 
+CREATE OR REPLACE FUNCTION total(mes_input INTEGER, anio_input INTEGER) 
 RETURNS NUMERIC(7,2)
 AS $$
 DECLARE
