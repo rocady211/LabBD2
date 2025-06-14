@@ -4,6 +4,24 @@
 EXEC SQL INCLUDE sqlca;
 void opcionMenu();
 
+struct Persona {
+    string nombre;
+    int cedula;
+};
+
+void RealizarVenta () {
+    bool hayReponsable = false;
+    int cantPersonaes = 0;
+
+    scanf("%d", &cantPersonaes);
+    Persona arr[cantPersonaes];
+
+    for(int i = 0; i < x; i++) {
+        
+    }
+};
+
+
 int main() {
     EXEC SQL CONNECT TO 'lab02@localhost' USER postgres IDENTIFIED BY postgres;
 
