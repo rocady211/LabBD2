@@ -1,41 +1,39 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-EXEC SQL INCLUDE sqlca;
-void opcionMenu();
+EXEC SQL BEGIN DECLARE SECTION;
+        short int id;   
+        char name[250];
+EXEC SQL END DECLARE SECTION;
 
-struct Persona {
-    string nombre;
-    int cedula;
-};
+EXEC SQL WHENEVER SQLERROR SQLPRINT;
+EXEC SQL WHENEVER SQLWARNING SQLPRINT;
+EXEC SQL WHENEVER NOT FOUND SQLPRINT;
 
-void RealizarVenta () {
-    bool hayReponsable = false;
-    int cantPersonaes = 0;
+int main(){
 
-    scanf("%d", &cantPersonaes);
-    Persona arr[cantPersonaes];
+    EXEC SQL CONNECT TO rrh@127.0.0.1:5432 USER postgres;
 
-    for(int i = 0; i < x; i++) {
-        
+    if(sqlca.sqlcode != 0){
+        printf("TIPO DE ERROR: %d\n", sqlca.sqlcode);
+        printf("MENSAJE:%s\n", sqlca.sqlerrm.sqlerrmc);
     }
-};
+    EXEC SQL DECLARE cursor_employee CURSOR FOR SELECT id, name FROM employ>
 
+    EXEC SQL WHENEVER NOT FOUND DO BREAK;
 
-int main() {
-    EXEC SQL CONNECT TO 'lab02@localhost' USER postgres IDENTIFIED BY postgres;
+    EXEC SQL OPEN cursor_employee;
 
-    if (sqlca.sqlcode != 0) {
-        printf("Error al conectar: %s\n", sqlca.sqlerrm.sqlerrmc);
-        return 1;
+    while(1){
+            EXEC SQL FETCH FROM cursor_employee INTO :id, :name;
+            printf("ID del empleado: %d - Nombre: %s\n", id, name);
     }
 
-    printf("Conexión exitosa a la base de datos.\n");
-
-    EXEC SQL DISCONNECT;
-
+    EXEC SQL CLOSE cursor_employee;
+    EXEC SQL         DISCONNECT ALL;
     return 0;
 }
+
 
 
 void opcionMenu() {
