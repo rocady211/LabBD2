@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 EXEC SQL BEGIN DECLARE SECTION;
-        short int id;   
+        short int id;
         char name[250];
 EXEC SQL END DECLARE SECTION;
 
@@ -10,29 +10,50 @@ EXEC SQL WHENEVER SQLERROR SQLPRINT;
 EXEC SQL WHENEVER SQLWARNING SQLPRINT;
 EXEC SQL WHENEVER NOT FOUND SQLPRINT;
 
-int main(){
+int main ()
+{
+ EXEC SQL CONNECT TO rrhh@127.0.0.1:5432 USER postgres;
 
-    EXEC SQL CONNECT TO rrh@127.0.0.1:5432 USER postgres;
+ if (sqlca.sqlcode!=0)
+ {
+  printf("TIPO DE ERROR: %d\n", sqlca.sqlcode);
+  printf("MENSAJE:%s\n", sqlca.sqlerrm.sqlerrmc);
+ }
 
-    if(sqlca.sqlcode != 0){
-        printf("TIPO DE ERROR: %d\n", sqlca.sqlcode);
-        printf("MENSAJE:%s\n", sqlca.sqlerrm.sqlerrmc);
-    }
-    EXEC SQL DECLARE cursor_employee CURSOR FOR SELECT id, name FROM employ>
+ EXEC SQL DECLARE cursor_employee CURSOR FOR SELECT id, name FROM employee;
 
-    EXEC SQL WHENEVER NOT FOUND DO BREAK;
+ EXEC SQL WHENEVER NOT FOUND DO BREAK;
 
-    EXEC SQL OPEN cursor_employee;
+ EXEC SQL OPEN cursor_employee;
 
-    while(1){
-            EXEC SQL FETCH FROM cursor_employee INTO :id, :name;
-            printf("ID del empleado: %d - Nombre: %s\n", id, name);
-    }
+ while(1)
+ {
+        EXEC SQL FETCH FROM cursor_employee INTO :id, :name;
+        printf("ID del empleado: %d - Nombre: %s\n", id, name);
+ }
 
-    EXEC SQL CLOSE cursor_employee;
-    EXEC SQL         DISCONNECT ALL;
-    return 0;
+ EXEC SQL CLOSE cursor_employee;
+ EXEC SQL DISCONNECT ALL;
+ return 0;
+
 }
+
+struct Persona {
+    string nombre;
+    int cedula;
+};
+
+void RealizarVenta () {
+    bool hayReponsable = false;
+    int cantPersonaes = 0;
+
+    scanf("%d", &cantPersonaes);
+    Persona arr[cantPersonaes];
+
+    for(int i = 0; i < x; i++) {
+        
+    }
+};
 
 
 
