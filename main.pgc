@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
 EXEC SQL BEGIN DECLARE SECTION;
         short int id;
@@ -10,30 +12,30 @@ EXEC SQL WHENEVER SQLERROR SQLPRINT;
 EXEC SQL WHENEVER SQLWARNING SQLPRINT;
 EXEC SQL WHENEVER NOT FOUND SQLPRINT;
 
+void Conectar() {
+    EXEC SQL CONNECT TO rrhh@127.0.0.1:5432 USER postgres;
+
+    if (sqlca.sqlcode!=0)
+    {
+    printf("TIPO DE ERROR: %d\n", sqlca.sqlcode);
+    printf("MENSAJE:%s\n", sqlca.sqlerrm.sqlerrmc);
+    }
+}
+
+void Desconectar() {
+    EXEC SQL DISCONNECT ALL;
+}
+
+void space() {
+    printf("\n|)
+}
+
 int main ()
 {
- EXEC SQL CONNECT TO rrhh@127.0.0.1:5432 USER postgres;
+ Conectar(); 
 
- if (sqlca.sqlcode!=0)
- {
-  printf("TIPO DE ERROR: %d\n", sqlca.sqlcode);
-  printf("MENSAJE:%s\n", sqlca.sqlerrm.sqlerrmc);
- }
 
- EXEC SQL DECLARE cursor_employee CURSOR FOR SELECT id, name FROM employee;
-
- EXEC SQL WHENEVER NOT FOUND DO BREAK;
-
- EXEC SQL OPEN cursor_employee;
-
- while(1)
- {
-        EXEC SQL FETCH FROM cursor_employee INTO :id, :name;
-        printf("ID del empleado: %d - Nombre: %s\n", id, name);
- }
-
- EXEC SQL CLOSE cursor_employee;
- EXEC SQL DISCONNECT ALL;
+ Desconectar()
  return 0;
 
 }
@@ -41,19 +43,139 @@ int main ()
 struct Persona {
     string nombre;
     int cedula;
+    bool estacionamiento;
 };
 
-void RealizarVenta () {
-    bool hayReponsable = false;
-    int cantPersonaes = 0;
+typedef struct {
+    int anio;
+    int mes;
+    int dia;
+} Fecha;
 
-    scanf("%d", &cantPersonaes);
-    Persona arr[cantPersonaes];
-
-    for(int i = 0; i < x; i++) {
-        
+bool validarStructFecha(Fecha f) {
+    if(f.anio <=2024) {
+        printf("Debe de ingresar un anio valido);
+        return false
+    } else if (f.mes < 1 || f.mes > 12) {
+        printf("Debe de ingresar un mes valido);
+    } else if (
+        (f.mes == 1 && (f.dia < 1 || f.dia > 31)) ||
+        (f.mes == 2 && (f.dia < 1 || f.dia > 28)) ||
+        (f.mes == 3 && (f.dia < 1 || f.dia > 31)) ||
+        (f.mes == 4 && (f.dia < 1 || f.dia > 30)) ||
+        (f.mes == 5 && (f.dia < 1 || f.dia > 31)) ||
+        (f.mes == 6 && (f.dia < 1 || f.dia > 30)) ||
+        (f.mes == 7 && (f.dia < 1 || f.dia > 31)) ||
+        (f.mes == 8 && (f.dia < 1 || f.dia > 31)) ||
+        (f.mes == 9 && (f.dia < 1 || f.dia > 30)) ||
+        (f.mes == 10 && (f.dia < 1 || f.dia > 31)) ||
+        (f.mes == 11 && (f.dia < 1 || f.dia > 30)) ||
+        (f.mes == 12 && (f.dia < 1 || f.dia > 31))
+    ) {
+        printf("Debe ingresar un día válido para el mes seleccionado.\n");
+        return false;
     }
-};
+}
+
+int elegirParques() {
+    int parques[100], parqueSeleccionado, i = 0;
+    bool existeParque = false;
+    EXEC SQL DECLARE cursor_parques CURSOR FOR
+        SELECT id, nombre FROM parque;
+    
+    EXEC SQL OPEN cursor_parques;
+    while(1) {
+
+        EXEC SQL FETCH mi_cursor INTO :nombre, :id;
+
+        if (sqlca.sqlcode == 100) {     // Fin de los datos (no más filas)
+            break;
+        }
+
+        if (sqlca.sqlcode < 0) {        // Ocurrió un error
+            printf("Error en FETCH: %s\n", sqlca.sqlerrm.sqlerrmc);
+            break;
+        
+        }
+        printf("%s - %d\n", nombre, id);    
+        parques[i] = id;
+        i++
+        // Crear arreglo con el codigo de los parques
+    }
+    while(!existeParque) {
+        printf("Elegi un parque");
+        scanf("%d", parqueSeleccionado);
+        for (int j = 0; j < i, j++) {
+            if(parques[i] == parqueSeleccionado) {
+                existeParque = true;
+                break;
+            }
+        }        
+    }
+
+    return parqueSeleccionado;
+}
+
+
+void RealizarVenta() {
+    bool hayResponsable = false;
+    int cantPersonas = 0;
+    int parqueSeleccionado = 0;
+    int ciResponsable = 0;
+    Fecha fechaVenta;
+    bool esFechaValida = false;
+
+    obtenerParques();
+
+    printf("Selecciona el parque al que desea asistir: ");
+    parqueSeleccionado = elegirParques();
+
+    space();
+
+    while(validFecha == false) {
+        printf("Ingrese la fecha de la visita (formato AAAA-MM-DD): ");
+        scanf("%d-%d-%d", &fechaVenta.anio, &fechaVenta.mes, &fechaVenta.dia);
+
+        esFechaValida = validarStructFecha(fechaVenta);
+    }
+
+    space();
+
+    printf("Ingrese el número de personas que desea registrar: ");
+    scanf("%d", &cantPersonas); 
+
+    Persona arr[cantPersonas];  
+
+    if (cantPersonas > 1) {
+        printf("Ingrese la cédula del responsable: ");
+        scanf("%d", &ciResponsable); 
+        hayResponsable = true;
+    }
+
+    space();
+
+    printf("Ingrese los datos de las personas:\n");
+    space();
+
+    for (int i = 0; i < cantPersonas; i++) {
+        printf("Persona #%d:\n", i + 1);
+        
+        printf("Nombre: ");
+        scanf(" %[^\n]", arr[i].nombre); 
+        
+        printf("Cédula: ");
+        scanf("%d", &arr[i].cedula);
+        
+        printf("¿Tiene estacionamiento? (1 = sí, 0 = no): ");
+        int estacionamientoInput;
+        scanf("%d", &estacionamientoInput);
+        arr[i].estacionamiento = (estacionamientoInput == 1);
+        
+        space();
+    }
+
+    space();
+}
 
 
 

@@ -10,6 +10,7 @@ CREATE TABLE pase (
 );
 
 CREATE TABLE parque (
+    nombre VARCHAR(100);
     id_parque SERIAL,
     id_parking INT,
     capacidad INT
@@ -204,10 +205,10 @@ INSERT INTO parking (id_parking, capacidad, precio) VALUES
 (3, 200, 75);
 
 -- Parque
-INSERT INTO parque (id_parque, id_parking, capacidad) VALUES 
-(1, 1, 300),
-(2, 2, 250),
-(3, 3, 400);
+INSERT INTO parque (nombre, id_parque, id_parking, capacidad) VALUES 
+("parque 1",1, 1, 300),
+("parque 2",2, 2, 250),
+("parque 3",3, 3, 400);
 
 -- Cliente
 INSERT INTO cliente (ci, nombre1, nombre2, apellido1, apellido2) VALUES 
