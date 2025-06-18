@@ -140,7 +140,7 @@ void RealizarVenta() {
     int ciResponsable = 0;
     Fecha fechaVenta;
     bool esFechaValida = false;
-    cantEstacionamientos = 0;
+    int cantEstacionamientos = 0;
 
     printf("Selecciona el parque al que desea asistir: ");
     parqueSeleccionado = elegirParques();
@@ -216,7 +216,7 @@ void RealizarVenta() {
     space();
 
     id_parque = parqueSeleccionado;
-    estacionamientos = cantEstacionamientos
+    estacionamientos = cantEstacionamientos;
     cantEntradas = cantPersonas;
 
     fechaToString(fechaVenta, fechaStr, sizeof(fechaStr));
@@ -225,10 +225,15 @@ void RealizarVenta() {
                             :cantEntradas, :estacionamientos)
     INTO :resultado;
 
-    if (resultado == 1) {
-        printf("La venta se ha registrado exitosamente\n");
+    if (sqlca.sqlcode < 0) {
+        printf("Error en check_venta: %s\n", sqlca.sqlerrm.sqlerrmc);
+        // Manejar error, por ejemplo salir o retornar un valor de error
     } else {
-        printf("No se pudo registrar la venta\n");
+        if (resultado == 1) {
+            printf("Venta registrada con éxito\n");
+        } else {
+            printf("No se pudo registrar la venta\n");
+        }
     }
 }
 
