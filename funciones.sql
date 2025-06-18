@@ -117,7 +117,7 @@ void finalizar_aplicacion() {
 
 
 --------------------------TRIGGERS--------------------
---Trigger Insertar en Respondable
+--Trigger Validar en Respondable
 CREATE OR REPLACE FUNCTION validandoResponsable() 
 RETURNS TRIGGER AS $$
 DECLARE
@@ -181,20 +181,14 @@ LANGUAGE plpgsql;
 CREATE TRIGGER insertarVisitante
 AFTER INSERT ON PASE FOR EACH ROW EXECUTE PROCEDURE InsertandoVisitante();
 
---Trigger Insertar Factura
+
 CREATE OR REPLACE FUNCTION InsertandoFactura() 
 RETURNS TRIGGER AS $$
-DECLARE
-    descripcion TEXT;
 BEGIN 
-    INSERT INTO Factura (descripcion, fecha, codigo)
-        VALUES(NEW.descripcion, CURRENT_DATE(), NEW.codigo);
-
+    INSERT INTO Factura (fecha, codigo)
+        VALUES(CURRENT_DATE(), NEW.codigo);
 END; $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER InsertarFactura
-AFTER INSERT ON Pase FOR EACH ROW EXECUTE PROCEDURE InsertandoFactura();
-
---Arreglar factura para que tenga total, cantidad de entradas
---y cantidad de lugares con parking
+CREATE TRIGGER insertarFactura
+BEFORE INSERT ON PASE FOR EACH ROW EXECUTE PROCEDURE InsertandoFactura();
