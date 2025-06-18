@@ -1,19 +1,49 @@
+/* Processed by ecpg (16.9 (Ubuntu 16.9-0ubuntu0.24.04.1)) */
+/* These include files are added by the preprocessor */
+#include <ecpglib.h>
+#include <ecpgerrno.h>
+#include <sqlca.h>
+/* End of automatic include section */
+
+#line 1 "main.pgc"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
-EXEC SQL BEGIN DECLARE SECTION;
-        short int id;
-        char nombre[250];
-EXEC SQL END DECLARE SECTION;
+/* exec sql begin declare section */
+          
+         
 
-EXEC SQL WHENEVER SQLERROR SQLPRINT;
-EXEC SQL WHENEVER SQLWARNING SQLPRINT;
-EXEC SQL WHENEVER NOT FOUND SQLPRINT;
+#line 7 "main.pgc"
+ short id ;
+ 
+#line 8 "main.pgc"
+ char nombre [ 250 ] ;
+/* exec sql end declare section */
+#line 9 "main.pgc"
+
+
+/* exec sql whenever sqlerror  sqlprint ; */
+#line 11 "main.pgc"
+
+/* exec sql whenever sql_warning  sqlprint ; */
+#line 12 "main.pgc"
+
+/* exec sql whenever not found  sqlprint ; */
+#line 13 "main.pgc"
+
 
 void Conectar() {
-    EXEC SQL CONNECT TO lab02@localhost:5432 USER postgres;
+    { ECPGconnect(__LINE__, 0, "lab02@localhost:5432" , "postgres" , NULL , NULL, 0); 
+#line 16 "main.pgc"
+
+if (sqlca.sqlwarn[0] == 'W') sqlprint();
+#line 16 "main.pgc"
+
+if (sqlca.sqlcode < 0) sqlprint();}
+#line 16 "main.pgc"
+
 
     if (sqlca.sqlcode!=0){
         printf("TIPO DE ERROR: %d\n", sqlca.sqlcode);
@@ -24,7 +54,15 @@ void Conectar() {
 }
 
 void Desconectar() {
-    EXEC SQL DISCONNECT ALL;
+    { ECPGdisconnect(__LINE__, "ALL");
+#line 27 "main.pgc"
+
+if (sqlca.sqlwarn[0] == 'W') sqlprint();
+#line 27 "main.pgc"
+
+if (sqlca.sqlcode < 0) sqlprint();}
+#line 27 "main.pgc"
+
 }
 
 void space() {
@@ -86,13 +124,37 @@ bool validarStructFecha(Fecha f) {
 int elegirParques() {
     int parques[100], parqueSeleccionado, i = 0;
     bool existeParque = false;
-    EXEC SQL DECLARE cursor_parques CURSOR FOR
-        SELECT id, nombre FROM parque;
+    /* declare cursor_parques cursor for select id , nombre from parque */
+#line 90 "main.pgc"
+
     
-    EXEC SQL OPEN cursor_parques;
+    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "declare cursor_parques cursor for select id , nombre from parque", ECPGt_EOIT, ECPGt_EORT);
+#line 92 "main.pgc"
+
+if (sqlca.sqlwarn[0] == 'W') sqlprint();
+#line 92 "main.pgc"
+
+if (sqlca.sqlcode < 0) sqlprint();}
+#line 92 "main.pgc"
+
     while(1) {
 
-        EXEC SQL FETCH cursor_parques INTO :nombre, :id;
+        { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "fetch cursor_parques", ECPGt_EOIT, 
+	ECPGt_char,(nombre),(long)250,(long)1,(250)*sizeof(char), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_short,&(id),(long)1,(long)1,sizeof(short), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);
+#line 95 "main.pgc"
+
+if (sqlca.sqlcode == ECPG_NOT_FOUND) sqlprint();
+#line 95 "main.pgc"
+
+if (sqlca.sqlwarn[0] == 'W') sqlprint();
+#line 95 "main.pgc"
+
+if (sqlca.sqlcode < 0) sqlprint();}
+#line 95 "main.pgc"
+
 
         if (sqlca.sqlcode == 100) {     // Fin de los datos (no más filas)
             break;
