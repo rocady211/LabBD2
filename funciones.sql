@@ -1,6 +1,6 @@
 
 --------------------------REALIZAR VENTA----------------------------
-CREATE OR REPLACE FUNCTION check_venta(id_parque INTEGER, fecha TIME, cantEntradas INTEGER, cantiParking INTEGER) 
+CREATE OR REPLACE FUNCTION check_venta(p_id_parque INTEGER, fecha_reserva DATE, cantEntradas INTEGER, cantiParking INTEGER) 
 RETURNS BOOLEAN
 AS $$
 DECLARE
@@ -13,7 +13,7 @@ BEGIN
     capacidadOcupada := 0;
     --Chequeo parque
     SELECT INTO existe_parque
-    EXISTS(SELECT 1 FROM parque p WHERE id_parque = p.id_parque);
+    EXISTS(SELECT 1 FROM parque p WHERE p_id_parque = p.id_parque);
 
     IF NOT existe_parque THEN
         RAISE EXCEPTION 'No existe el parque';
@@ -21,18 +21,18 @@ BEGIN
     --Capacidad parque
     SELECT capacidad INTO capacidadParque 
     FROM parque p 
-    WHERE p.id_parque = id_parque;
+    WHERE p.id_parque = p_id_parque;
 
     --Capacidad ocupada del parque
     SELECT COUNT(*) INTO capacidadOcupada
     FROM pase p 
-    WHERE p.id_parque = id_parque AND p.fecha = fecha; 
+    WHERE p.id_parque = p_id_parque AND p.fecha = fecha_reserva; 
 
     if(capacidadOcupada + cantEntradas <= capacidadParque) THEN 
         RETURN TRUE;
     END IF;
     
-    RAISE EXCEPTION "No hay espacio disponible";
+	RAISE EXCEPTION 'No hay espacio disponible';
 
 END;
 $$ LANGUAGE plpgsql;

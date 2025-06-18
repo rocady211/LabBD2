@@ -221,9 +221,12 @@ void RealizarVenta() {
 
     fechaToString(fechaVenta, fechaStr, sizeof(fechaStr));
 
-    EXEC SQL SELECT check_venta(:id_parque, TO_DATE(:fechaStr, 'YYYY-MM-DD'),
-                            :cantEntradas, :estacionamientos)
-    INTO :resultado;
+    EXEC SQL SELECT check_venta(
+        :id_parque::INTEGER, 
+        TO_DATE(:fechaStr, 'YYYY-MM-DD')::DATE, 
+        :cantEntradas::INTEGER, 
+        :estacionamientos::INTEGER
+    ) INTO :resultado;
 
     if (sqlca.sqlcode < 0) {
         printf("Error en check_venta: %s\n", sqlca.sqlerrm.sqlerrmc);
