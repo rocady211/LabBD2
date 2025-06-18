@@ -27,7 +27,7 @@ void Desconectar() {
 }
 
 void space() {
-    printf("\n|)
+    printf("\n-------------------------------\n");
 }
 
 int main ()
@@ -35,22 +35,27 @@ int main ()
  Conectar(); 
 
 
- Desconectar()
+ Desconectar();
  return 0;
 
-}
+};
 
-struct Persona {
-    string nombre;
+typedef struct {
+    char nombre1[50], nombre2[50], apellido1[50], apellido2[50];
     int cedula;
     bool estacionamiento;
-};
+} Persona;
+
 
 typedef struct {
     int anio;
     int mes;
     int dia;
 } Fecha;
+
+void fechaToString(Fecha f, char* buffer, size_t size) {
+    snprintf(buffer, size, "%04d-%02d-%02d", f.anio, f.mes, f.dia);
+}
 
 bool validarStructFecha(Fecha f) {
     if(f.anio <=2024) {
@@ -80,37 +85,47 @@ bool validarStructFecha(Fecha f) {
 int elegirParques() {
     int parques[100], parqueSeleccionado, i = 0;
     bool existeParque = false;
+    char nombre[50];
+    int id_parque;
+
     EXEC SQL DECLARE cursor_parques CURSOR FOR
-        SELECT id, nombre FROM parque;
-    
+        SELECT id_parque, nombre FROM parque;
+
     EXEC SQL OPEN cursor_parques;
-    while(1) {
 
-        EXEC SQL FETCH mi_cursor INTO :nombre, :id;
+    while (1) {
+        EXEC SQL FETCH cursor_parques INTO :id_parque, :nombre;
 
-        if (sqlca.sqlcode == 100) {     // Fin de los datos (no más filas)
+        if (sqlca.sqlcode == 100) {  // Fin de datos
             break;
         }
 
-        if (sqlca.sqlcode < 0) {        // Ocurrió un error
+        if (sqlca.sqlcode < 0) {
             printf("Error en FETCH: %s\n", sqlca.sqlerrm.sqlerrmc);
             break;
-        
         }
-        printf("%s - %d\n", nombre, id);    
-        parques[i] = id;
-        i++
-        // Crear arreglo con el codigo de los parques
+
+        printf("%s - %d\n", nombre, id_parque);
+        parques[i] = id_parque;
+        i++;
     }
-    while(!existeParque) {
-        printf("Elegi un parque");
-        scanf("%d", parqueSeleccionado);
-        for (int j = 0; j < i, j++) {
-            if(parques[i] == parqueSeleccionado) {
+
+    EXEC SQL CLOSE cursor_parques;
+
+    while (!existeParque) {
+        printf("Elegí un parque válido: ");
+        scanf("%d", &parqueSeleccionado);
+
+        for (int j = 0; j < i; j++) {
+            if (parques[j] == parqueSeleccionado) {
                 existeParque = true;
                 break;
             }
-        }        
+        }
+
+        if (!existeParque) {
+            printf("Parque no válido. Intente nuevamente.\n");
+        }
     }
 
     return parqueSeleccionado;
@@ -124,6 +139,8 @@ void RealizarVenta() {
     int ciResponsable = 0;
     Fecha fechaVenta;
     bool esFechaValida = false;
+    int resultado;
+    int estacionamientos = 0;
 
     obtenerParques();
 
@@ -132,7 +149,7 @@ void RealizarVenta() {
 
     space();
 
-    while(validFecha == false) {
+    while(esFechaValida == false) {
         printf("Ingrese la fecha de la visita (formato AAAA-MM-DD): ");
         scanf("%d-%d-%d", &fechaVenta.anio, &fechaVenta.mes, &fechaVenta.dia);
 
@@ -159,22 +176,45 @@ void RealizarVenta() {
 
     for (int i = 0; i < cantPersonas; i++) {
         printf("Persona #%d:\n", i + 1);
-        
-        printf("Nombre: ");
-        scanf(" %[^\n]", arr[i].nombre); 
-        
+
+        printf("Primer nombre: ");
+        scanf(" %[^\n]", arr[i].nombre1);
+
+        printf("Segundo nombre (Si aplica): ");
+        scanf(" %[^\n]", arr[i].nombre2);
+
+        printf("Primer apellido: ");
+        scanf(" %[^\n]", arr[i].apellido1);
+
+        printf("Segundo apellido: ");
+        scanf(" %[^\n]", arr[i].apellido2);
+
         printf("Cédula: ");
         scanf("%d", &arr[i].cedula);
-        
+
         printf("¿Tiene estacionamiento? (1 = sí, 0 = no): ");
         int estacionamientoInput;
         scanf("%d", &estacionamientoInput);
         arr[i].estacionamiento = (estacionamientoInput == 1);
-        
+        if(estacionamientoInput) {
+            estacionamientos ++;
+        }        
         space();
     }
 
     space();
+
+    char fechaStr[20];
+    fechaToString(fechaVenta, fechaStr, sizeof(fechaStr));
+
+
+    EXEC SQL SELECT check_venta(:id_parque, TO_TIMESTAMP(:fechaStr, 'YYYY-MM-DD HH24:MI:SS'), 
+                            :cantEntradas, :estacionamientos, :parking)
+    INTO :resultado;
+
+    if(resultado == true) {
+        printf("La venta se ha registrado exitosamente");
+    }
 }
 
 
