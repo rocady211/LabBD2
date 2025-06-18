@@ -9,7 +9,7 @@ EXEC SQL BEGIN DECLARE SECTION;
     char fechaStr[20];
     int cantEntradas;
     int estacionamientos;
-    int resultado;
+    char resultado[1];
 EXEC SQL END DECLARE SECTION;
 
 EXEC SQL WHENEVER SQLWARNING SQLPRINT;
@@ -221,18 +221,24 @@ void RealizarVenta() {
 
     fechaToString(fechaVenta, fechaStr, sizeof(fechaStr));
 
+    printf("id_parque: %d\n", id_parque);
+    printf("fechaStr: %s\n", fechaStr);
+    printf("cantEntradas: %d\n", cantEntradas);
+    printf("estacionamientos: %d\n", estacionamientos);
+
     EXEC SQL SELECT check_venta(
-        :id_parque::INTEGER, 
-        TO_DATE(:fechaStr, 'YYYY-MM-DD')::DATE, 
-        :cantEntradas::INTEGER, 
-        :estacionamientos::INTEGER
+        :id_parque, 
+        TO_DATE(:fechaStr, 'YYYY-MM-DD'), 
+        :cantEntradas, 
+        :estacionamientos
     ) INTO :resultado;
+
+    printf("res es %s\n", resultado);
 
     if (sqlca.sqlcode < 0) {
         printf("Error en check_venta: %s\n", sqlca.sqlerrm.sqlerrmc);
-        // Manejar error, por ejemplo salir o retornar un valor de error
     } else {
-        if (resultado == 1) {
+        if (strcmp(resultado, "t") == 0) {
             printf("Venta registrada con éxito\n");
         } else {
             printf("No se pudo registrar la venta\n");
