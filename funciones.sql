@@ -1,5 +1,4 @@
 
---------------------------REALIZAR VENTA----------------------------
 CREATE OR REPLACE FUNCTION check_venta(p_id_parque INTEGER, fecha_reserva DATE, cantEntradas INTEGER, cantiParking INTEGER) 
 RETURNS BOOLEAN
 AS $$
@@ -37,9 +36,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
---------------------------VALIDAR ENTRADA----------------------------
-
-CREATE OR REPLACE FUNCTION validar(fecha_input DATE, ci_input INTEGER) 
+CREATE OR REPLACE FUNCTION validarEntrada(fecha_input DATE, ci_input INTEGER) 
 RETURNS TEXT
 AS $$
 DECLARE
@@ -95,35 +92,14 @@ $$ LANGUAGE plpgsql;
 
 
 
-----------------SALIR--------------
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <libpq-fe.h>
-
-PGconn *conexion;
-
-void finalizar_aplicacion() {
-    // Cerrar la conexión
-    if (conexion != NULL) {
-        PQfinish(conexion);
-        printf("Conexión a PostgreSQL cerrada correctamente.\n");
-    }
-
-    // Finalizar programa
-    printf("Saliendo de la aplicación...\n");
-    exit(EXIT_SUCCESS);
-}
-
 
 --------------------------TRIGGERS--------------------
---Trigger Insertar en Respondable
+--Trigger Validar en Respondable
 CREATE OR REPLACE FUNCTION validandoResponsable() 
 RETURNS TRIGGER AS $$
 DECLARE
-    existe BOOLEAN
+    existe BOOLEAN;
 BEGIN 
-	
     SELECT EXISTS (
         SELECT 1
         FROM Respondable r
@@ -147,7 +123,7 @@ BEFORE INSERT ON Responsable FOR EACH ROW EXECUTE PROCEDURE validandoResponsable
 CREATE OR REPLACE FUNCTION validandoVisitante() 
 RETURNS TRIGGER AS $$
 DECLARE
-    existe BOOLEAN
+    existe BOOLEAN;
 BEGIN 
 	
     SELECT EXISTS (
@@ -181,20 +157,14 @@ LANGUAGE plpgsql;
 CREATE TRIGGER insertarVisitante
 AFTER INSERT ON PASE FOR EACH ROW EXECUTE PROCEDURE InsertandoVisitante();
 
---Trigger Insertar Factura
+
 CREATE OR REPLACE FUNCTION InsertandoFactura() 
 RETURNS TRIGGER AS $$
-DECLARE
-    descripcion TEXT;
 BEGIN 
-    INSERT INTO Factura (descripcion, fecha, codigo)
-        VALUES(NEW.descripcion, CURRENT_DATE(), NEW.codigo);
-
+    INSERT INTO Factura (fecha, codigo)
+        VALUES(NOW(), NEW.codigo);
 END; $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER InsertarFactura
-AFTER INSERT ON Pase FOR EACH ROW EXECUTE PROCEDURE InsertandoFactura();
-
---Arreglar factura para que tenga total, cantidad de entradas
---y cantidad de lugares con parking
+CREATE TRIGGER insertarFactura
+BEFORE INSERT ON PASE FOR EACH ROW EXECUTE PROCEDURE InsertandoFactura();

@@ -1,21 +1,51 @@
+/* Processed by ecpg (16.9 (Ubuntu 16.9-0ubuntu0.24.04.1)) */
+/* These include files are added by the preprocessor */
+#include <ecpglib.h>
+#include <ecpgerrno.h>
+#include <sqlca.h>
+/* End of automatic include section */
+
+#line 1 "main.pgc"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
-EXEC SQL BEGIN DECLARE SECTION;
-    char nombre[100];
-    int id_parque;
-    char fechaStr[20];
-    int cantEntradas;
-    int estacionamientos;
-    char resultado[1];
-EXEC SQL END DECLARE SECTION;
+/* exec sql begin declare section */
+     
+     
+     
+     
+     
+     
+
+#line 7 "main.pgc"
+ char nombre [ 100 ] ;
+ 
+#line 8 "main.pgc"
+ int id_parque ;
+ 
+#line 9 "main.pgc"
+ char fechaStr [ 20 ] ;
+ 
+#line 10 "main.pgc"
+ int cantEntradas ;
+ 
+#line 11 "main.pgc"
+ int estacionamientos ;
+ 
+#line 12 "main.pgc"
+ int resultado ;
+/* exec sql end declare section */
+#line 13 "main.pgc"
+
 
 
 
 void Conectar() {
-    EXEC SQL CONNECT TO lab02@localhost:5432 USER postgres;
+    { ECPGconnect(__LINE__, 0, "lab02@localhost:5432" , "postgres" , NULL , NULL, 0); }
+#line 18 "main.pgc"
+
 
     if (sqlca.sqlcode != 0) {
         printf("TIPO DE ERROR: %ld\n", sqlca.sqlcode);
@@ -24,7 +54,9 @@ void Conectar() {
 }
 
 void Desconectar() {
-    EXEC SQL DISCONNECT ALL;
+    { ECPGdisconnect(__LINE__, "ALL");}
+#line 27 "main.pgc"
+
 }
 
 void limpiarBuffer() {
@@ -83,13 +115,20 @@ int elegirParques() {
     int parques[100], parqueSeleccionado, i = 0;
     bool existeParque = false;
 
-    EXEC SQL DECLARE cursor_parques CURSOR FOR
-        SELECT id_parque FROM parque;
+    /* declare cursor_parques cursor for select id_parque from parque */
+#line 87 "main.pgc"
 
-    EXEC SQL OPEN cursor_parques;
+
+    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "declare cursor_parques cursor for select id_parque from parque", ECPGt_EOIT, ECPGt_EORT);}
+#line 89 "main.pgc"
+
 
     while (1) {
-        EXEC SQL FETCH cursor_parques INTO :id_parque;
+        { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "fetch cursor_parques", ECPGt_EOIT, 
+	ECPGt_int,&(id_parque),(long)1,(long)1,sizeof(int), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);}
+#line 92 "main.pgc"
+
 
         if (sqlca.sqlcode == 100) {
             break;
@@ -105,7 +144,9 @@ int elegirParques() {
         i++;
     }
 
-    EXEC SQL CLOSE cursor_parques;
+    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "close cursor_parques", ECPGt_EOIT, ECPGt_EORT);}
+#line 108 "main.pgc"
+
     space();
     while (!existeParque) {
     printf("\nElegí un parque válido: ");
@@ -220,24 +261,25 @@ void RealizarVenta() {
 
     fechaToString(fechaVenta, fechaStr, sizeof(fechaStr));
 
-    printf("id_parque: %d\n", id_parque);
-    printf("fechaStr: %s\n", fechaStr);
-    printf("cantEntradas: %d\n", cantEntradas);
-    printf("estacionamientos: %d\n", estacionamientos);
+    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "select check_venta ( $1  , TO_DATE ( $2  , 'YYYY-MM-DD' ) , $3  , $4  )", 
+	ECPGt_int,&(id_parque),(long)1,(long)1,sizeof(int), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_char,(fechaStr),(long)20,(long)1,(20)*sizeof(char), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_int,&(cantEntradas),(long)1,(long)1,sizeof(int), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_int,&(estacionamientos),(long)1,(long)1,sizeof(int), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EOIT, 
+	ECPGt_int,&(resultado),(long)1,(long)1,sizeof(int), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);}
+#line 225 "main.pgc"
 
-    EXEC SQL SELECT check_venta(
-        :id_parque, 
-        TO_DATE(:fechaStr, 'YYYY-MM-DD'), 
-        :cantEntradas, 
-        :estacionamientos
-    ) INTO :resultado;
-
-    printf("res es %s\n", resultado);
 
     if (sqlca.sqlcode < 0) {
         printf("Error en check_venta: %s\n", sqlca.sqlerrm.sqlerrmc);
+        // Manejar error, por ejemplo salir o retornar un valor de error
     } else {
-        if (strcmp(resultado, "t") == 0) {
+        if (resultado == 1) {
             printf("Venta registrada con éxito\n");
         } else {
             printf("No se pudo registrar la venta\n");
