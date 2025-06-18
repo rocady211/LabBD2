@@ -114,3 +114,87 @@ void finalizar_aplicacion() {
     printf("Saliendo de la aplicación...\n");
     exit(EXIT_SUCCESS);
 }
+
+
+--------------------------TRIGGERS--------------------
+--Trigger Insertar en Respondable
+CREATE OR REPLACE FUNCTION validandoResponsable() 
+RETURNS TRIGGER AS $$
+DECLARE
+    existe BOOLEAN
+BEGIN 
+	
+    SELECT EXISTS (
+        SELECT 1
+        FROM Respondable r
+        WHERE NEW.ci = r.ci
+    ) INTO existe;
+
+    IF existe THEN
+        RETURN NULL;
+    ELSE
+        RETURN NEW;
+    END IF;
+
+END; $$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER validarResponsable
+BEFORE INSERT ON Responsable FOR EACH ROW EXECUTE PROCEDURE validandoResponsable();
+
+
+--Trigger para validar antes de insertar en Visitante
+CREATE OR REPLACE FUNCTION validandoVisitante() 
+RETURNS TRIGGER AS $$
+DECLARE
+    existe BOOLEAN
+BEGIN 
+	
+    SELECT EXISTS (
+        SELECT 1
+        FROM Visitante v
+        WHERE NEW.ci = v.ci
+    ) INTO existe;
+
+    IF existe THEN
+        RETURN NULL;
+    ELSE
+        RETURN NEW;
+    END IF;
+
+END; $$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER validarVisitante
+BEFORE INSERT ON Visitante FOR EACH ROW EXECUTE PROCEDURE validandoVisitante();
+
+
+--Trigger insertar en Visitante
+CREATE OR REPLACE FUNCTION InsertandoVisitante() 
+RETURNS TRIGGER AS $$
+BEGIN 
+    INSERT INTO Visitante (ci_visitante)
+        VALUES(NEW.ci_visitante);
+END; $$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER insertarVisitante
+AFTER INSERT ON PASE FOR EACH ROW EXECUTE PROCEDURE InsertandoVisitante();
+
+--Trigger Insertar Factura
+CREATE OR REPLACE FUNCTION InsertandoFactura() 
+RETURNS TRIGGER AS $$
+DECLARE
+    descripcion TEXT;
+BEGIN 
+    INSERT INTO Factura (descripcion, fecha, codigo)
+        VALUES(NEW.descripcion, CURRENT_DATE(), NEW.codigo);
+
+END; $$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER InsertarFactura
+AFTER INSERT ON Pase FOR EACH ROW EXECUTE PROCEDURE InsertandoFactura();
+
+--Arreglar factura para que tenga total, cantidad de entradas
+--y cantidad de lugares con parking
