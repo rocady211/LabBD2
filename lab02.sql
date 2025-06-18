@@ -10,7 +10,7 @@ CREATE TABLE pase (
 );
 
 CREATE TABLE parque (
-    nombre VARCHAR(100);
+    nombre VARCHAR(100),
     id_parque SERIAL,
     id_parking INT,
     capacidad INT
@@ -206,9 +206,9 @@ INSERT INTO parking (id_parking, capacidad, precio) VALUES
 
 -- Parque
 INSERT INTO parque (nombre, id_parque, id_parking, capacidad) VALUES 
-("parque 1",1, 1, 300),
-("parque 2",2, 2, 250),
-("parque 3",3, 3, 400);
+('parque 1',1, 1, 300),
+('parque 2',2, 2, 250),
+('parque 3',3, 3, 400);
 
 -- Cliente
 INSERT INTO cliente (ci, nombre1, nombre2, apellido1, apellido2) VALUES 
@@ -370,6 +370,3 @@ CREATE USER operador;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO gerente;
 GRANT SELECT ON vista_entradas_2024 TO contador;
 GRANT SELECT, UPDATE, INSERT ON pase, visitante, responsable TO operador;
-
-
-

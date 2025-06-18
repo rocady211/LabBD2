@@ -1,6 +1,6 @@
 
 --------------------------REALIZAR VENTA----------------------------
-CREATE OR REPLACE FUNCTION check_venta(id_parque INTEGER, fecha TIMESTAMP, cantEntradas INTEGER, cantiParking INTEGER, PARKING INTEGER) 
+CREATE OR REPLACE FUNCTION check_venta(id_parque INTEGER, fecha TIME, cantEntradas INTEGER, cantiParking INTEGER) 
 RETURNS BOOLEAN
 AS $$
 DECLARE
