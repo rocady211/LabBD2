@@ -10,36 +10,20 @@ DECLARE
 BEGIN
     existe_parque := false;
     capacidadParque := 0;
-    capacidadOcupada := 0;
-    --Chequeo parque
-    SELECT INTO existe_parque
-    EXISTS(SELECT 1 FROM parque p WHERE id_parque = p.id_parque);
-
     IF NOT existe_parque THEN
         RAISE EXCEPTION 'No existe el parque';
     END IF;
     --Capacidad parque
     SELECT capacidad INTO capacidadParque 
-    FROM parque p 
-    WHERE p.id_parque = id_parque;
-
-    --Capacidad ocupada del parque
-    SELECT COUNT(*) INTO capacidadOcupada
-    FROM pase p 
-    WHERE p.id_parque = id_parque AND p.fecha = fecha; 
-
-    if(capacidadOcupada + cantEntradas <= capacidadParque) THEN 
+    FROM parque p WHERE p.id_parque = id_parque; 
+    IF(capacidadParque >= cantEntradas) THEN 
         RETURN TRUE;
     END IF;
-    
-    RAISE EXCEPTION "No hay espacio disponible";
-
+    RAISE EXCEPTION 'No hay espacio disponible';
 END;
 $$ LANGUAGE plpgsql;
 
---------------------------VALIDAR ENTRADA----------------------------
-
-CREATE OR REPLACE FUNCTION validar(fecha_input DATE, ci_input INTEGER) 
+CREATE OR REPLACE FUNCTION validarEntrada(fecha_input DATE, ci_input INTEGER) 
 RETURNS TEXT
 AS $$
 DECLARE
@@ -95,35 +79,14 @@ $$ LANGUAGE plpgsql;
 
 
 
-----------------SALIR--------------
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <libpq-fe.h>
-
-PGconn *conexion;
-
-void finalizar_aplicacion() {
-    // Cerrar la conexión
-    if (conexion != NULL) {
-        PQfinish(conexion);
-        printf("Conexión a PostgreSQL cerrada correctamente.\n");
-    }
-
-    // Finalizar programa
-    printf("Saliendo de la aplicación...\n");
-    exit(EXIT_SUCCESS);
-}
-
 
 --------------------------TRIGGERS--------------------
 --Trigger Validar en Respondable
 CREATE OR REPLACE FUNCTION validandoResponsable() 
 RETURNS TRIGGER AS $$
 DECLARE
-    existe BOOLEAN
+    existe BOOLEAN;
 BEGIN 
-	
     SELECT EXISTS (
         SELECT 1
         FROM Respondable r
@@ -147,7 +110,7 @@ BEFORE INSERT ON Responsable FOR EACH ROW EXECUTE PROCEDURE validandoResponsable
 CREATE OR REPLACE FUNCTION validandoVisitante() 
 RETURNS TRIGGER AS $$
 DECLARE
-    existe BOOLEAN
+    existe BOOLEAN;
 BEGIN 
 	
     SELECT EXISTS (
@@ -186,7 +149,7 @@ CREATE OR REPLACE FUNCTION InsertandoFactura()
 RETURNS TRIGGER AS $$
 BEGIN 
     INSERT INTO Factura (fecha, codigo)
-        VALUES(CURRENT_DATE(), NEW.codigo);
+        VALUES(NOW(), NEW.codigo);
 END; $$
 LANGUAGE plpgsql;
 

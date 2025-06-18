@@ -363,10 +363,3 @@ WHERE ps.fecha BETWEEN '2024-01-01' AND '2024-12-31'
 GROUP BY pa.id_parque;
 REFRESH MATERIALIZED VIEW vista_entradas_2024;
 
-CREATE USER gerente;
-CREATE USER contador;
-CREATE USER operador;
-
-GRANT ALL ON ALL TABLES IN SCHEMA public TO gerente;
-GRANT SELECT ON vista_entradas_2024 TO contador;
-GRANT SELECT, UPDATE, INSERT ON pase, visitante, responsable TO operador;
