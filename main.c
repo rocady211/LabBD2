@@ -1,4 +1,4 @@
-/* Processed by ecpg (16.9 (Ubuntu 16.9-0ubuntu0.24.04.1)) */
+/* Processed by ecpg (14.18 (Homebrew)) */
 /* These include files are added by the preprocessor */
 #include <ecpglib.h>
 #include <ecpgerrno.h>
@@ -35,7 +35,7 @@
  int estacionamientos ;
  
 #line 12 "main.pgc"
- int resultado ;
+ char resultado [ 1 ] ;
 /* exec sql end declare section */
 #line 13 "main.pgc"
 
@@ -43,7 +43,7 @@
 
 
 void Conectar() {
-    { ECPGconnect(__LINE__, 0, "lab02@localhost:5432" , "postgres" , NULL , NULL, 0); }
+    { ECPGconnect(__LINE__, 0, "lab02BD@localhost:5432" , "postgres" , NULL , NULL, 0); }
 #line 18 "main.pgc"
 
 
@@ -115,17 +115,19 @@ int elegirParques() {
     int parques[100], parqueSeleccionado, i = 0;
     bool existeParque = false;
 
-    /* declare cursor_parques cursor for select id_parque from parque */
+    /* declare cursor_parques cursor for select id_parque , nombre from parque */
 #line 87 "main.pgc"
 
 
-    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "declare cursor_parques cursor for select id_parque from parque", ECPGt_EOIT, ECPGt_EORT);}
+    { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "declare cursor_parques cursor for select id_parque , nombre from parque", ECPGt_EOIT, ECPGt_EORT);}
 #line 89 "main.pgc"
 
 
     while (1) {
         { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "fetch cursor_parques", ECPGt_EOIT, 
 	ECPGt_int,&(id_parque),(long)1,(long)1,sizeof(int), 
+	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
+	ECPGt_char,(nombre),(long)100,(long)1,(100)*sizeof(char), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);}
 #line 92 "main.pgc"
 
@@ -261,6 +263,11 @@ void RealizarVenta() {
 
     fechaToString(fechaVenta, fechaStr, sizeof(fechaStr));
 
+    printf("id_parque: %d\n", id_parque);
+    printf("fechaStr: %s\n", fechaStr);
+    printf("cantEntradas: %d\n", cantEntradas);
+    printf("estacionamientos: %d\n", estacionamientos);
+
     { ECPGdo(__LINE__, 0, 1, NULL, 0, ECPGst_normal, "select check_venta ( $1  , TO_DATE ( $2  , 'YYYY-MM-DD' ) , $3  , $4  )", 
 	ECPGt_int,&(id_parque),(long)1,(long)1,sizeof(int), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
@@ -270,16 +277,17 @@ void RealizarVenta() {
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, 
 	ECPGt_int,&(estacionamientos),(long)1,(long)1,sizeof(int), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EOIT, 
-	ECPGt_int,&(resultado),(long)1,(long)1,sizeof(int), 
+	ECPGt_char,&(resultado),(long)1,(long)1,(1)*sizeof(char), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);}
-#line 225 "main.pgc"
+#line 233 "main.pgc"
 
+
+    printf("res es %s\n", resultado);
 
     if (sqlca.sqlcode < 0) {
         printf("Error en check_venta: %s\n", sqlca.sqlerrm.sqlerrmc);
-        // Manejar error, por ejemplo salir o retornar un valor de error
     } else {
-        if (resultado == 1) {
+        if (strcmp(resultado, "t") == 0) {
             printf("Venta registrada con éxito\n");
         } else {
             printf("No se pudo registrar la venta\n");

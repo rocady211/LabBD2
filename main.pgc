@@ -15,7 +15,7 @@ EXEC SQL END DECLARE SECTION;
 
 
 void Conectar() {
-    EXEC SQL CONNECT TO lab02@localhost:5432 USER postgres;
+    EXEC SQL CONNECT TO lab02BD@localhost:5432 USER postgres;
 
     if (sqlca.sqlcode != 0) {
         printf("TIPO DE ERROR: %ld\n", sqlca.sqlcode);
@@ -84,12 +84,12 @@ int elegirParques() {
     bool existeParque = false;
 
     EXEC SQL DECLARE cursor_parques CURSOR FOR
-        SELECT id_parque FROM parque;
+        SELECT id_parque, nombre FROM parque;
 
     EXEC SQL OPEN cursor_parques;
 
     while (1) {
-        EXEC SQL FETCH cursor_parques INTO :id_parque;
+        EXEC SQL FETCH cursor_parques INTO :id_parque, :nombre;
 
         if (sqlca.sqlcode == 100) {
             break;
