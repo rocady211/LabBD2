@@ -154,9 +154,7 @@ void RealizarVenta() {
         if (resultado != 3) {
             printf("Formato inválido. Intente nuevamente.\n");
 
-            // Limpiar el buffer de entrada
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            limpiarBuffer()
             continue;
         }
 

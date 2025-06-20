@@ -191,9 +191,23 @@ void RealizarVenta() {
 
     while (!esFechaValida) {
         printf("Ingrese la fecha de la visita (formato AAAA-MM-DD): ");
-        scanf("%d-%d-%d", &fechaVenta.anio, &fechaVenta.mes, &fechaVenta.dia);
+        
+        int resultado = scanf("%d-%d-%d", &fechaVenta.anio, &fechaVenta.mes, &fechaVenta.dia);
+
+        if (resultado != 3) {
+            printf("Formato inválido. Intente nuevamente.\n");
+
+            // Limpiar el buffer de entrada
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
 
         esFechaValida = validarStructFecha(fechaVenta);
+
+        if (!esFechaValida) {
+            printf("Fecha no válida lógicamente. Intente de nuevo.\n");
+        }
     }
 
     space();
@@ -279,7 +293,7 @@ void RealizarVenta() {
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EOIT, 
 	ECPGt_char,&(resultado),(long)1,(long)1,(1)*sizeof(char), 
 	ECPGt_NO_INDICATOR, NULL , 0L, 0L, 0L, ECPGt_EORT);}
-#line 233 "main.pgc"
+#line 247 "main.pgc"
 
 
     printf("res es %s\n", resultado);
