@@ -1,4 +1,3 @@
-
 CREATE OR REPLACE FUNCTION check_venta(p_id_parque INTEGER, fecha_reserva DATE, cantEntradas INTEGER, cantiParking INTEGER) 
 RETURNS BOOLEAN
 AS $$
@@ -118,6 +117,17 @@ LANGUAGE plpgsql;
 CREATE TRIGGER validarResponsable
 BEFORE INSERT ON Responsable FOR EACH ROW EXECUTE PROCEDURE validandoResponsable();
 
+--Trigger insertar en Visitante
+CREATE OR REPLACE FUNCTION InsertandoVisitante() 
+RETURNS TRIGGER AS $$
+BEGIN 
+    INSERT INTO Visitante (ci_visitante)
+        VALUES(NEW.ci_visitante, NEW.nombre1, NE).nombre2, NEW.apellido1, NEW.apellido2;
+END; $$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER insertarVisitante
+AFTER INSERT ON PASE FOR EACH ROW EXECUTE PROCEDURE InsertandoVisitante();
 
 --Trigger para validar antes de insertar en Visitante
 CREATE OR REPLACE FUNCTION validandoVisitante() 
@@ -143,19 +153,6 @@ LANGUAGE plpgsql;
 
 CREATE TRIGGER validarVisitante
 BEFORE INSERT ON Visitante FOR EACH ROW EXECUTE PROCEDURE validandoVisitante();
-
-
---Trigger insertar en Visitante
-CREATE OR REPLACE FUNCTION InsertandoVisitante() 
-RETURNS TRIGGER AS $$
-BEGIN 
-    INSERT INTO Visitante (ci_visitante)
-        VALUES(NEW.ci_visitante);
-END; $$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER insertarVisitante
-AFTER INSERT ON PASE FOR EACH ROW EXECUTE PROCEDURE InsertandoVisitante();
 
 
 CREATE OR REPLACE FUNCTION InsertandoFactura() 

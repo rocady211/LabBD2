@@ -363,3 +363,219 @@ WHERE ps.fecha BETWEEN '2024-01-01' AND '2024-12-31'
 GROUP BY pa.id_parque;
 REFRESH MATERIALIZED VIEW vista_entradas_2024;
 
+
+
+------------------------------------
+------------------------------------
+-------------Funciones--------------
+------------------------------------
+------------------------------------
+
+
+
+CREATE OR REPLACE FUNCTION check_venta(p_id_parque INTEGER, fecha_reserva DATE, cantEntradas INTEGER, cantiParking INTEGER) 
+RETURNS BOOLEAN
+AS $$
+DECLARE
+    existe_parque BOOLEAN;
+    capacidadParque INTEGER;
+    capacidadOcupada INTEGER;
+BEGIN
+    existe_parque := false;
+    capacidadParque := 0;
+    capacidadOcupada := 0;
+    --Chequeo parque
+    SELECT INTO existe_parque
+    EXISTS(SELECT 1 FROM parque p WHERE p_id_parque = p.id_parque);
+
+    IF NOT existe_parque THEN
+        RAISE EXCEPTION 'No existe el parque';
+    END IF;
+    --Capacidad parque
+    SELECT capacidad INTO capacidadParque 
+    FROM parque p 
+    WHERE p.id_parque = p_id_parque;
+
+    --Capacidad ocupada del parque
+    SELECT COUNT(*) INTO capacidadOcupada
+    FROM pase p 
+    WHERE p.id_parque = p_id_parque AND p.fecha = fecha_reserva; 
+
+    if(capacidadOcupada + cantEntradas <= capacidadParque) THEN 
+        RETURN TRUE;
+    END IF;
+    
+	RAISE EXCEPTION 'No hay espacio disponible';
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION validarEntrada(fecha_input DATE, ci_input TEXT) 
+RETURNS TEXT
+AS $$
+DECLARE
+    existe_pase BOOLEAN;
+    ultimo_movimiento BOOLEAN;
+BEGIN
+
+    IF fecha_input <= CURRENT_DATE THEN
+        RETURN 'Fecha inválida';
+    END IF;
+
+    SELECT EXISTS (
+        SELECT 1
+        FROM Pase
+        WHERE fecha = fecha_input AND ci_visitante = ci_input
+    ) INTO existe_pase;
+
+    IF NOT existe_pase THEN
+        RETURN 'Entrada NO válida';
+    END IF;
+
+    SELECT r.entrada_salida INTO ultimo_movimiento FROM Registro r JOIN Pase p
+    ON r.codigo = p.codigo
+    WHERE p.ci_visitante = ci_input AND p.fecha = fecha_input
+    ORDER BY r.hora DESC
+    LIMIT 1;
+
+    IF ultimo_movimiento IS NULL OR ultimo_movimiento = FALSE THEN
+        RETURN 'Entrada válida';
+    ELSE
+        RETURN 'Entrada NO válida, ya dentro del parque';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-------------------------TOTAL RECAUDADO-------------------------------
+
+CREATE OR REPLACE FUNCTION total(mes_input INTEGER, anio_input INTEGER) 
+RETURNS NUMERIC(7,2)
+AS $$
+DECLARE
+    total NUMERIC(7,2);
+BEGIN
+    SELECT COALESCE(SUM(precio), 0.00)
+    INTO total
+    FROM Pase
+    WHERE EXTRACT(MONTH FROM fecha) = mes_input
+        AND EXTRACT(YEAR FROM fecha) = anio_input;
+
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+
+--------------------------TRIGGERS--------------------
+--Trigger Validar en Respondable
+CREATE OR REPLACE FUNCTION validandoResponsable() 
+RETURNS TRIGGER AS $$
+DECLARE
+    existe BOOLEAN;
+BEGIN 
+    SELECT EXISTS (
+        SELECT 1
+        FROM Respondable r
+        WHERE NEW.ci = r.ci
+    ) INTO existe;
+
+    IF existe THEN
+        RETURN NULL;
+    ELSE
+        RETURN NEW;
+    END IF;
+
+END; $$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER validarResponsable
+BEFORE INSERT ON Responsable FOR EACH ROW EXECUTE PROCEDURE validandoResponsable();
+
+
+--Trigger para validar antes de insertar en Visitante
+CREATE OR REPLACE FUNCTION validandoVisitante() 
+RETURNS TRIGGER AS $$
+DECLARE
+    existeV BOOLEAN;
+	existeC BOOLEAN;
+BEGIN 
+	
+    SELECT EXISTS (
+        SELECT 1
+        FROM Visitante v
+        WHERE NEW.ci = v.ci
+    ) INTO existeV;
+
+    IF existeV THEN
+        RETURN NULL;
+    ELSE
+        RETURN NEW;
+    END IF;
+
+END; $$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER validarVisitante
+BEFORE INSERT ON Visitante FOR EACH ROW EXECUTE PROCEDURE validandoVisitante();
+
+
+--Trigger insertar en Visitante
+CREATE OR REPLACE FUNCTION insertarcliente(
+    ci TEXT,
+    nom1 TEXT,
+    nom2 TEXT,
+    ape1 TEXT,
+    ape2 TEXT,
+    esResp BOOLEAN
+) RETURNS BOOLEAN AS $$
+DECLARE
+    existe_cliente BOOLEAN := FALSE;
+    existe_visitante BOOLEAN := FALSE;
+    existe_responsable BOOLEAN := FALSE;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1 FROM cliente WHERE ci = ci
+    ) INTO existe_cliente;
+
+    IF NOT existe_cliente THEN
+        INSERT INTO cliente (ci, nombre1, nombre2, apellido1, apellido2)
+        VALUES (ci, nom1, nom2, ape1, ape2);
+    END IF;
+
+    IF NOT esResp THEN 
+        SELECT EXISTS (
+            SELECT 1 FROM visitante WHERE ci_visitante = ci
+        ) INTO existe_visitante;
+
+        IF NOT existe_visitante THEN
+            INSERT INTO visitante (ci_visitante, nombre1, nombre2, apellido1, apellido2)
+            VALUES (ci, nom1, nom2, ape1, ape2);
+        END IF;
+    END IF;
+
+    IF esResp THEN 
+        SELECT EXISTS (
+            SELECT 1 FROM responsable WHERE ci_responsable = ci
+        ) INTO existe_responsable;
+
+        IF NOT existe_responsable THEN
+            INSERT INTO responsable (ci_responsable)
+            VALUES (ci);
+        END IF;
+    END IF;
+
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION InsertandoFactura() 
+RETURNS TRIGGER AS $$
+BEGIN 
+    INSERT INTO Factura (fecha, codigo)
+        VALUES(NOW(), NEW.codigo);
+END; $$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER insertarFactura
+BEFORE INSERT ON PASE FOR EACH ROW EXECUTE PROCEDURE InsertandoFactura();
